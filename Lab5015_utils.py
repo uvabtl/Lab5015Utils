@@ -1,6 +1,8 @@
 import minimalmodbus
 import serial
 import pyvisa
+import subprocess
+from datetime import datetime
 
 
 
@@ -88,3 +90,18 @@ class PiLas():
         """Set the laser frequency [Hz]"""
         print(self.instr.query("f="+str(value)))
 
+
+
+##########################
+
+def read_box_temp():
+    now = datetime.now()
+    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    out = subprocess.run(['ssh', 'pi@100.100.100.5', './getTemperature.py ', current_time],
+                         stdout=subprocess.PIPE)
+    result = out.stdout.decode('utf-8').rstrip('\n').split()
+    
+    if len(result) != 2:
+        raise Exception("Could not read box temperature")
+    else:
+        return result[1]

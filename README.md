@@ -14,3 +14,8 @@ Allows to turn the chiller ON and OFF and check and change the temperature. A sc
 ```
 python3 driveChiller.py --power=1 --temp=19.2
 ```
+
+The following script uses a PD approach to reach and maintain the desired temperature:
+```
+python3 setBoxTemp_PID.py --target 22
+```

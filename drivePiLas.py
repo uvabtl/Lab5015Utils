@@ -4,7 +4,7 @@ from optparse import OptionParser
 parser = OptionParser()
 
 parser.add_option("--power", dest="power", default="0")
-parser.add_option("--freq", dest="freq", default="25")
+parser.add_option("--freq", dest="freq", default="10000")
 parser.add_option("--tune", dest="tune", default="0")
 (options, args) = parser.parse_args()
 

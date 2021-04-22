@@ -19,8 +19,8 @@ max_temp = options.target + 1.
 min_temp_safe = 10.
 max_temp_safe = 30.
 
-if options.target < min_temp or options.target > max_temp:
-    print("### ERROR: set temperature outside allowed range ["+str(min_temp)+"-"+str(max_temp)+"]. Exiting...")
+if options.target < min_temp_safe or options.target > max_temp_safe:
+    print("### ERROR: set temperature outside allowed range ["+str(min_temp_safe)+"-"+str(max_temp_safe)+"]. Exiting...")
     sys.exit(-1)
 
 
@@ -28,6 +28,7 @@ if options.target < min_temp or options.target > max_temp:
 SMC = SMChiller()
 
 state = SMC.check_state()
+print(datetime.now())
 print(">>> SMChiller::state: "+str(state))
 
 if state is 0:
@@ -56,12 +57,12 @@ water_temp = SMC.read_meas_temp()
 new_temp = options.target - 1.
 print("--- setting chiller water temperature at "+str(new_temp)+"° C   [box temperature: "+str(box_temp)+"° C   water temperature: "+str(water_temp)+"° C]")
 SMC.write_set_temp(new_temp)
-sleep_time = 900
+sleep_time = 600
 print("--- sleeping for "+str(sleep_time)+" s\n")
 time.sleep(sleep_time)
 sys.stdout.flush()
 
-pid = PID(0.3, 0., 50, setpoint=options.target)
+pid = PID(0.3, 0., 70., setpoint=options.target)
 pid.output_limits = (min_temp-options.target, max_temp-options.target)
 
 

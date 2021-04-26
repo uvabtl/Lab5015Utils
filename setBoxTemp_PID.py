@@ -13,8 +13,8 @@ parser.add_option("--target", type=float, dest="target", default=22.0)
 
 debug = True
 
-min_temp = options.target - 6.
-max_temp = options.target + 1.
+min_temp = options.target - 4.
+max_temp = options.target + 4. #interval needs to be symmetrical not to diverge when a temp spike occurs
 
 min_temp_safe = 10.
 max_temp_safe = 30.
@@ -59,8 +59,8 @@ print("--- setting chiller water temperature at "+str(new_temp)+"° C   [box tem
 SMC.write_set_temp(new_temp)
 sleep_time = 600
 print("--- sleeping for "+str(sleep_time)+" s\n")
-time.sleep(sleep_time)
 sys.stdout.flush()
+time.sleep(sleep_time)
 
 pid = PID(0.3, 0., 70., setpoint=options.target)
 pid.output_limits = (min_temp-options.target, max_temp-options.target)
@@ -93,8 +93,8 @@ while True:
         SMC.write_set_temp(round(new_temp, 1))
         sleep_time = 120
         print("--- sleeping for "+str(sleep_time)+" s   [kill at any time with ctrl-C]\n")
-        time.sleep(sleep_time)
         sys.stdout.flush()
+        time.sleep(sleep_time)
     
     except KeyboardInterrupt:
         break

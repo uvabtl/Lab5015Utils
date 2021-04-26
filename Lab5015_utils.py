@@ -60,7 +60,7 @@ class PiLas():
 
     """
 
-    def __init__(self, portname='ASRL/dev/ttyUSB0::INSTR'):
+    def __init__(self, portname='ASRL/dev/pilas::INSTR'):
         self.instr = pyvisa.ResourceManager().open_resource(portname)
         self.instr.baud_rate = 19200
         self.instr.read_termination = '\n'

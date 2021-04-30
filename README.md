@@ -19,3 +19,20 @@ The following script uses a PD approach to reach and maintain the desired temper
 ```
 python3 setBoxTemp_PID.py --target 22
 ```
+
+
+### Bind an instrument to a device name
+Check instrument characteristics
+```
+dmesg | grep ttyUSB
+udevadm info --name=/dev/ttyUSBx --attribute-walk
+```
+Create a file `/etc/udev/rules.d/99-usb-serial.rules` with something like this line in it:
+```
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1234", ATTRS{idProduct}=="5678", SYMLINK+="your_device_name"
+```
+test the change:
+```
+sudo udevadm trigger
+udevadm test -a -p  $(udevadm info -q path -n /dev/your_device_name)
+

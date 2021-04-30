@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 from Lab5015_utils import PiLas
 from optparse import OptionParser
 
@@ -13,7 +15,7 @@ parser.add_option("--tune", dest="tune", default="0")
 las = PiLas()
 
 print("set tune:")
-las.set_tune(options.tune+"0")
+las.set_tune(str(float(options.tune)*10.))
 print("set freq:")
 las.set_freq(options.freq)
 print("set power:")

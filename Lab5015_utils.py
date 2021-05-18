@@ -91,9 +91,58 @@ class PiLas():
         print(self.instr.query("f="+str(value)))
 
 
+##########################
+class Keithley2450():
+    """Instrument class for Keithley 2450
+
+    Args:
+        * portname (str): port name
+
+    """
+
+    def __init__(self, portname='TCPIP0::100.100.100.7::INSTR'):
+        self.instr = pyvisa.ResourceManager().open_resource(portname)
+        self.mybuffer = "\"defbuffer1\""
+        self.instr.write(":TRAC:CLE "+self.mybuffer) #clear buffers and prepare for measure
+
+    def query(self, query):
+        """Pass a query to the power supply"""
+        print(self.instr.query(query))
+
+    def meas_V(self):
+        """Return time and voltage"""
+        query_out = self.instr.query(":MEASure:VOLT? "+self.mybuffer+", SEC, READ").strip()
+        time = query_out.split(",")[0]
+        volt = query_out.split(",")[1]
+        return(float(time), float(volt))
+
+    def meas_I(self):
+        """Return time and current"""
+        query_out = self.instr.query(":MEASure:CURR? "+self.mybuffer+", SEC, READ").strip()
+        time = query_out.split(",")[0]
+        curr = query_out.split(",")[1]
+        return(float(time), float(curr))
+
+    def meas_IV(self):
+        """Return time and current"""
+        self.instr.query(":MEASure:CURR? "+self.mybuffer+", READ")
+
+        query_out = self.instr.query("FETCh? "+self.mybuffer+", SEC,READ,SOURCE").strip()
+        time = query_out.split(",")[0]
+        curr = query_out.split(",")[1]
+        volt = query_out.split(",")[2]
+        return(float(time), float(curr), float(volt))
+
+    def set_V(self, value):
+        """Set operating voltage"""
+        return(self.instr.write("SOUR:VOLT "+str(value)))
+
+    def set_state(self, value):
+        """Set the PS state (0: OFF, 1: RUNNING)"""
+        return(self.instr.write("OUTP "+str(value)))
+
 
 ##########################
-
 def read_box_temp():
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -105,3 +154,17 @@ def read_box_temp():
         raise Exception("Could not read box temperature")
     else:
         return result[1]
+
+
+##########################
+def read_arduino_temp():
+    now = datetime.now()
+    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    out = subprocess.run(['ssh', 'pi@100.100.100.5', './read_arduinoTemp.py'],
+                         stdout=subprocess.PIPE)
+    result = out.stdout.decode('utf-8').rstrip('\n').split()
+    
+    if len(result) != 7:
+        raise Exception("Could not read box temperature")
+    else:
+        return result

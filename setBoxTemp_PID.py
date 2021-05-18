@@ -11,6 +11,8 @@ from simple_pid import PID
 parser = OptionParser()
 
 parser.add_option("--target", type=float, dest="target", default=22.0)
+parser.add_option("--initialDelay", type=float, dest="initialDelay", default=600)
+parser.add_option("--initialTemp", type=float, dest="initialTemp", default=19.5)
 (options, args) = parser.parse_args()
 
 debug = True
@@ -56,10 +58,10 @@ while True:
 
 
 water_temp = SMC.read_meas_temp()
-new_temp = options.target - 1.
+new_temp = options.initialTemp
 print("--- setting chiller water temperature at "+str(new_temp)+"° C   [box temperature: "+str(box_temp)+"° C   water temperature: "+str(water_temp)+"° C]")
 SMC.write_set_temp(new_temp)
-sleep_time = 600
+sleep_time = options.initialDelay
 print("--- sleeping for "+str(sleep_time)+" s\n")
 sys.stdout.flush()
 time.sleep(sleep_time)

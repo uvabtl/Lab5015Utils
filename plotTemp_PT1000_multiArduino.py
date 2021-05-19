@@ -4,6 +4,14 @@ import matplotlib.dates as mdates
 from time import sleep, strftime, time
 from datetime import datetime
 import sys
+from optparse import OptionParser
+from Lab5015_utils import read_arduino_temp
+
+
+parser = OptionParser()
+parser.add_option("--inFile","--inFile")
+(options,args)=parser.parse_args()
+
 
 plt.ion()
 mytime = []
@@ -19,8 +27,6 @@ labels.append("SiPMS")
 labels.append("Humidity")
 labels.append("Air Temperature")
 
-
-file=sys.argv[1]
 
 def graph():
 
@@ -42,26 +48,42 @@ def graph():
     plt.show()
 
     
-with open(str(file), 'r') as fin:
-    for line in fin.readlines() [-20000:]:
-        readings = line.strip().split()
-        nreadings = len(readings)
-        mytime.append(datetime.strptime(readings[0]+" "+readings[1], "%Y-%m-%d %H:%M:%S")) 
-        for position in range(4,nreadings):
-            #if isinstance(position, float):
-            mytemps[position-4].append(float(readings[position]))
+
+if options.inFile == "live":
+    while True:
     
-while True:
-    with open(str(file), 'r') as fin:
-        for line in fin.readlines() [-1:]:
+        temps = read_arduino_temp()
+        for position in range(len(temps)):
+            mytemps[position].append(float(temps[position]))
+
+        mytime.append(datetime.now())
+            
+        graph()
+        plt.pause(1)
+
+
+
+else:
+    with open(str(options.inFile), 'r') as fin:
+        for line in fin.readlines() [-20000:]:
             readings = line.strip().split()
             nreadings = len(readings)
-        
-            mytime.append(datetime.strptime(readings[0]+" "+readings[1], "%Y-%m-%d %H:%M:%S"))
+            mytime.append(datetime.strptime(readings[0]+" "+readings[1], "%Y-%m-%d %H:%M:%S")) 
             for position in range(4,nreadings):
+                #if isinstance(position, float):
                 mytemps[position-4].append(float(readings[position]))
+    
+    while True:
+        with open(str(options.inFile), 'r') as fin:
+            for line in fin.readlines() [-1:]:
+                readings = line.strip().split()
+                nreadings = len(readings)
+        
+                mytime.append(datetime.strptime(readings[0]+" "+readings[1], "%Y-%m-%d %H:%M:%S"))
+                for position in range(4,nreadings):
+                    mytemps[position-4].append(float(readings[position]))
 
 
-    graph()
-    plt.pause(1)
+        graph()
+        plt.pause(1)
 

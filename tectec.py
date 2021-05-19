@@ -12,9 +12,8 @@ parser.add_option("-l","--log")
 
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',filename=options.log,level=logging.INFO)
 
-timeout = 600
-tensions = [0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
-
+timeout = 480
+tensions = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 0.0, 0.0, 0.0]
 mykey = Keithley2450()
 mykey.set_V(0)
 mykey.set_state(1)

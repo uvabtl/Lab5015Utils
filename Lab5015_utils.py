@@ -158,8 +158,6 @@ def read_box_temp():
 
 ##########################
 def read_arduino_temp():
-    now = datetime.now()
-    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     out = subprocess.run(['ssh', 'pi@100.100.100.5', './read_arduinoTemp.py'],
                          stdout=subprocess.PIPE)
     result = out.stdout.decode('utf-8').rstrip('\n').split()

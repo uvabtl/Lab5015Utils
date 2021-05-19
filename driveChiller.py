@@ -1,5 +1,6 @@
 from Lab5015_utils import SMChiller
 from optparse import OptionParser
+import time
 
 parser = OptionParser()
 
@@ -16,10 +17,10 @@ SMC.write_set_temp(options.temp)
 print("set power to ", options.power)
 SMC.set_state(options.power)
 
+time.sleep(3)
 
 if float(SMC.read_set_temp()) != float(options.temp):
     print("wrong temp")
-
 
 if int(SMC.check_state()) != int(options.power):
     print("power")

@@ -11,8 +11,15 @@ parser.add_option("--power", dest="power", default="0")
 
 SMC = SMChiller()
 
-print("set temp")
+print("set temp to ", options.temp)
 SMC.write_set_temp(options.temp)
-print("set power")
+print("set power to ", options.power)
 SMC.set_state(options.power)
 
+
+if float(SMC.read_set_temp()) != float(options.temp):
+    print("wrong temp")
+
+
+if int(SMC.check_state()) != int(options.power):
+    print("power")

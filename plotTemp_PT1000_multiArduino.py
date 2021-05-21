@@ -37,7 +37,7 @@ def graph():
     plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=30))
     
     axes = plt.gca()
-    axes.set_ylim([0.,30.])
+    axes.set_ylim([0.,40.])
 
     for sensor,data in mytemps.items():
         plt.plot(mytime,data,label=labels[int(sensor)])
@@ -53,10 +53,15 @@ if options.inFile == "live":
     while True:
     
         temps = read_arduino_temp()
+        out = ""
         for position in range(len(temps)):
             mytemps[position].append(float(temps[position]))
+            out += str(temps[position])+" "
 
-        mytime.append(datetime.now())
+        time = datetime.now()
+        mytime.append(time)
+
+        print(time.strftime("%Y-%m-%d %H:%M:%S")+" "+out )
             
         graph()
         plt.pause(1)

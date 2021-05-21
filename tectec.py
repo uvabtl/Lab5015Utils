@@ -6,14 +6,23 @@ import logging
 from optparse import OptionParser
 
 parser = OptionParser()
-parser.add_option("-l","--log")
+parser.add_option("--run")
+parser.add_option("--hot", action='store_true')
+
 (options,args)=parser.parse_args()
 
 
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',filename=options.log,level=logging.INFO)
+fOut = "/home/cmsdaq/Lab5015Utils/tectecscan/run"+str(options.run)+".txt"
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',filename=fOut,level=logging.INFO)
 
-timeout = 480
-tensions = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 0.0, 0.0, 0.0]
+timeout = 1800
+tensions = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 0.0]
+#tensions = [0.0, 0.0, 1.0, 3.0, 5.0, 0.0]
+if options.hot:
+    tensions = [ -i for i in tensions ]
+
+print(tensions)
+
 mykey = Keithley2450()
 mykey.set_V(0)
 mykey.set_state(1)

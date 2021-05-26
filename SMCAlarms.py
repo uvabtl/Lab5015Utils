@@ -45,7 +45,8 @@ class LogstashFormatter(Formatter):
 
 
 # global vars
-period=(10) # log every 15 seconds
+period = 10 # log every 10 seconds
+delay = 2 # time delay between check state and check press
 press_high_alert = 0.35 #MPa
 press_low_alert = 0.10 #MPa
 
@@ -67,8 +68,9 @@ def main():
 
 
     while (1):
-        my_press = SMC.read_meas_press()
         my_state = SMC.check_state()
+        time.sleep(delay)
+        my_press = SMC.read_meas_press()
 
         # getting local day and time
         now = datetime.datetime.now()
@@ -92,7 +94,7 @@ def main():
 
 
         # sleep for period
-        time.sleep(period)
+        time.sleep(period-delay)
 
 
 

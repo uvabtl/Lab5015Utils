@@ -51,7 +51,7 @@ while True:
     try:
         box_temp = float(read_box_temp())
         break
-    except Exception as e:
+    except ValueError as e:
         print(e)
         time.sleep(5)
         continue
@@ -77,7 +77,7 @@ while True:
 
         try:
             box_temp = float(read_box_temp())
-        except Exception as e:
+        except ValueError as e:
             print(e)
             time.sleep(5)
             continue

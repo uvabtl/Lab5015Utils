@@ -151,7 +151,7 @@ def read_box_temp():
     result = out.stdout.decode('utf-8').rstrip('\n').split()
     
     if len(result) != 2:
-        raise Exception("Could not read box temperature")
+        raise ValueError("Could not read box temperature")
     else:
         return result[1]
 
@@ -163,6 +163,6 @@ def read_arduino_temp():
     result = out.stdout.decode('utf-8').rstrip('\n').split()
     
     if len(result) != 7:
-        raise Exception("Could not read box temperature")
+        raise ValueError("Could not read arduino temperature")
     else:
         return result

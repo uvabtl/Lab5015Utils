@@ -23,9 +23,9 @@ cursor.execute(query)
 data = cursor.fetchone()
 
 if data is None:
-    raise Exception("Could not read box temperature")
+    raise ValueError("Could not read box temperature")
 elif len(data) != 4:
-    raise Exception("Could not read box temperature")
+    raise ValueError("Could not read box temperature")
 else:
     print("temp: "+str(data[2]))
 

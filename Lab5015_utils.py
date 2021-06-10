@@ -2,6 +2,9 @@ import minimalmodbus
 import serial
 import pyvisa
 import subprocess
+import time
+import sys
+from simple_pid import PID
 from datetime import datetime
 
 
@@ -152,6 +155,7 @@ class Keithley2231A():
 
     Args:
         * portname (str): port name
+        * channel (str): channel name
 
     """
 
@@ -167,12 +171,12 @@ class Keithley2231A():
 
     def meas_V(self):
         """read set voltage"""
-        volt = self.instr.query("MEAS:VOLT? "+self.chName).strip()
+        volt = self.instr.query("MEAS:VOLT?").strip()
         return(float(volt))
 
     def meas_I(self):
         """measure current"""
-        curr = self.instr.query("MEAS:CURR? "+self.chName).strip()
+        curr = self.instr.query("MEAS:CURR?").strip()
         return(float(curr))
 
     def set_V(self, value):
@@ -186,6 +190,86 @@ class Keithley2231A():
     def check_state(self):
         """Check the PS state (0: OFF, 1: RUNNING)"""
         return(int(self.instr.query("OUTP?").strip()))
+
+
+##########################
+class sipmPower():
+    """class to control the power delivered to SiPMs
+
+    Args:
+        * target (str): target power
+
+    """
+
+    def __init__(self, target=0.432):
+        self.target = float(target)
+        self.sipm = Keithley2231A(chName="CH1")
+
+        self.min_voltage = 0.
+        self.max_voltage = 2.
+
+        self.min_pow_safe = 0.
+        self.max_pow_safe = 2. # Watts   
+
+        self.debug = True
+        
+        if self.target < self.min_pow_safe or self.target > self.max_pow_safe:
+            raise ValueError("### ERROR: set power outside allowed range")
+
+        self.state = self.sipm.check_state()
+        self.I = 0.
+        self.V = 0.
+        self.P = 0.
+        self.new_voltage = self.V
+
+        self.pid = PID(0.5, 0., 1., setpoint=self.target)
+        self.pid.output_limits = (-0.5, 0.5)
+
+
+    def power_on(self):
+        if self.state is 0:
+            print("--- powering on the PS")
+            self.sipm.set_V(0.0)
+            self.sipm.set_state(1)
+            time.sleep(2)
+            self.state = self.sipm.check_state()
+            if self.state == 0:
+                raise ValueError("### ERROR: PS did not power on")
+
+    def power_off(self):
+        if self.state is 1:
+            print("--- powering off the PS")
+            self.sipm.set_V(0.0)
+            self.sipm.set_state(0)
+            time.sleep(2)
+            self.state = self.sipm.check_state()
+            if self.state != 0:
+                raise ValueError("### ERROR: PS did not power off")
+
+
+    def compute_voltage(self):
+        self.power_on()
+
+        self.I = self.sipm.meas_I()
+        self.V = self.sipm.meas_V()
+        self.P = self.I * self.V - (self.I * self.I * 1.3) # hardcoded resistance of the cable
+
+        output = self.pid(self.P)
+        self.new_voltage += output
+
+        #safety check
+        self.new_voltage = min([max([self.new_voltage,self.min_voltage]),self.max_voltage])
+
+        if self.debug:
+            print(datetime.now())
+            p, i, d = self.pid.components
+            print("== DEBUG == P=", p, "I=", i, "D=", d)
+            print("--- setting SiPM voltage to "+str(self.new_voltage)+" V    [sipm current: "+str(self.I)+" sipm power: "+str(self.P)+" W]\n")
+            sys.stdout.flush()
+
+        self.sipm.set_V(self.new_voltage)
+        sleep_time = 0.5
+
 
 
 ##########################

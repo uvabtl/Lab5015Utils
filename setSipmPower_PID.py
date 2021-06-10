@@ -36,7 +36,7 @@ if state is 0:
     print("--- powering on the PS")
     SiPM.set_V(0.0)
     SiPM.set_state(1)
-    time.sleep(1)
+    time.sleep(2)
     state = SiPM.check_state()
     print(">>> PS::state: "+str(state))
     if state == 0:
@@ -70,14 +70,14 @@ while True:
         #safety check
         new_voltage = min([max([new_voltage,min_voltage]),max_voltage])
 
+        print(datetime.now())
         if debug:
             p, i, d = pid.components
             print("== DEBUG == P=", p, "I=", i, "D=", d)
-
-        print(datetime.now())
         print("--- setting SiPM voltage to "+str(new_voltage)+" V    [sipm current: "+str(I)+" sipm power: "+str(P)+" W]")
+
         SiPM.set_V(new_voltage)
-        sleep_time = 0.2
+        sleep_time = 1
         print("--- sleeping for "+str(sleep_time)+" s   [kill at any time with ctrl-C]\n")
         sys.stdout.flush()
         time.sleep(sleep_time)

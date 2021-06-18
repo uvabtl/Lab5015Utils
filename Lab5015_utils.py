@@ -148,6 +148,10 @@ class Keithley2450():
         """Check the PS state (0: OFF, 1: RUNNING)"""
         return(int(self.instr.query("OUTP?").strip()))
 
+    def set_4wire(self, value):
+        """set 4 wire mode"""
+        return(self.instr.write("SENS:CURR:RSEN "+str(value)))
+
 
 ##########################
 class Keithley2231A():
@@ -201,7 +205,7 @@ class sipmPower():
 
     """
 
-    def __init__(self, target=0.432):
+    def __init__(self, target=0.432): #target in Watts
         self.target = float(target)
         self.sipm = Keithley2231A(chName="CH1")
 
@@ -212,7 +216,7 @@ class sipmPower():
         self.max_pow_safe = 2. # Watts   
 
         self.debug = True
-        
+
         if self.target < self.min_pow_safe or self.target > self.max_pow_safe:
             raise ValueError("### ERROR: set power outside allowed range")
 
@@ -246,14 +250,12 @@ class sipmPower():
             if self.state != 0:
                 raise ValueError("### ERROR: PS did not power off")
 
-
-    def compute_voltage(self):
+    def compute_voltage(self, I, V):
         self.power_on()
 
-        self.I = self.sipm.meas_I()
-        self.V = self.sipm.meas_V()
-        self.P = self.I * self.V - (self.I * self.I * 1.3) # hardcoded resistance of the cable
-
+        self.I = I
+        self.V = V
+        self.P = self.I * self.V - (self.I * self.I * 1.2) # hardcoded resistance of the cable
         output = self.pid(self.P)
         self.new_voltage += output
 
@@ -270,6 +272,82 @@ class sipmPower():
         self.sipm.set_V(self.new_voltage)
         sleep_time = 0.5
 
+##########################
+class sipmTemp():
+    """class to control the SiPM temperature
+
+    Args:
+        * target (str): target temp
+
+    """
+
+    def __init__(self, target=25): # target in °C
+        self.target = float(target)
+        self.TEC = Keithley2450()
+
+        self.min_voltage = -5.
+        self.max_voltage = 5.
+
+        self.min_temp_safe = -35.
+        self.max_temp_safe = 40.
+
+        self.debug = True
+        
+        if self.target < self.min_temp_safe or self.target > self.max_temp_safe:
+            raise ValueError("### ERROR: set temp outside allowed range")
+
+        self.state = self.TEC.check_state()
+        self.sipm_temp = 25.
+        self.I = 0.
+        self.V = 0.
+        self.new_voltage = self.V
+
+        self.pid = PID(-0.25, 0., -1., setpoint=self.target)
+        self.pid.output_limits = (-2., 2.)
+
+
+    def power_on(self):
+        if self.state is 0:
+            print("--- powering on the PS")
+            self.TEC.set_V(0.0)
+            self.TEC.set_state(1)
+            time.sleep(2)
+            self.state = self.TEC.check_state()
+            if self.state == 0:
+                raise ValueError("### ERROR: PS did not power on")
+
+    def power_off(self):
+        if self.state is 1:
+            print("--- powering off the PS")
+            self.TEC.set_V(0.0)
+            self.TEC.set_state(0)
+            time.sleep(2)
+            self.state = self.TEC.check_state()
+            if self.state != 0:
+                raise ValueError("### ERROR: PS did not power off")
+
+
+    def compute_voltage(self, sipm_temp):
+        self.power_on()
+
+        self.sipm_temp = float(sipm_temp)
+
+        output = self.pid(self.sipm_temp)
+        self.new_voltage += output
+
+        #safety check
+        self.new_voltage = min([max([self.new_voltage,self.min_voltage]),self.max_voltage])
+
+        if self.debug:
+            (date, I, V) = self.TEC.meas_IV()
+            print(date)
+            p, i, d = self.pid.components
+            print("== DEBUG == P=", p, "I=", i, "D=", d)
+            print("--- setting TEC power to "+str(I*V)+" W    [sipm temp: "+str(self.sipm_temp)+" C]\n")
+            sys.stdout.flush()
+
+        self.TEC.set_V(self.new_voltage)
+        sleep_time = 0.5
 
 
 ##########################
@@ -288,11 +366,33 @@ def read_box_temp():
 
 ##########################
 def read_arduino_temp():
-    out = subprocess.run(['ssh', 'pi@100.100.100.5', './read_arduinoTemp.py'],
-                         stdout=subprocess.PIPE)
-    result = out.stdout.decode('utf-8').rstrip('\n').split()
-    
+    command = '1'
+    out = ""
+
+    try:
+        ser = serial.Serial("/dev/ttyACM0", 115200)
+        ser.timeout = 1
+    except serial.serialutil.SerialException:
+        print('not possible to establish connection with device')
+
+    data = ser.readline()[:-2] #the last bit gets rid of the new-line chars
+    x = ser.write((command+'\r\n').encode())
+
+    # let's wait one second before reading output (let's give device time to answer)
+    time.sleep(1)
+    while ser.inWaiting() > 0:
+        out += ser.read(1).decode()
+
+    ser.close()
+
+    if out != "":
+        out.replace("\r","").replace("\n","")
+
+    result = out.rstrip('\n').split()
     if len(result) != 7:
         raise ValueError("Could not read arduino temperature")
     else:
+        airTemp = float(result[6])
+        if airTemp < 0:
+            result[6] = str(-airTemp - 3276.80)
         return result

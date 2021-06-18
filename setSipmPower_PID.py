@@ -62,7 +62,7 @@ while True:
 
         I = SiPM.meas_I()
         V = SiPM.meas_V()
-        P = I * V - (I * I * 1.3) # hardcoded resistance of the cable    
+        P = I * V - (I * I * 1.2) # hardcoded resistance of the cable    
         
         output = pid(P)
         new_voltage += output

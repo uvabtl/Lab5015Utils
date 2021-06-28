@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from Lab5015_utils import SMChiller
 from optparse import OptionParser
 import time

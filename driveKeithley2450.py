@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from datetime import datetime
 import sys
 import time
@@ -14,8 +16,10 @@ parser.add_option("--set4wire")
 (options,args)=parser.parse_args()
 
 mykey = Keithley2450()
-mykey.set_V(float(options.setV))
-mykey.set_4wire(str(options.set4wire))
-mykey.set_state(int(options.setState))
-(_, I, V) = mykey.meas_IV()
-print (I,V)
+#mykey.set_V(float(options.setV))
+#mykey.set_4wire(str(options.set4wire))
+#mykey.set_state(int(options.setState))
+#(_, I, V) = mykey.meas_IV()
+#print (I,V)
+(_, V) = mykey.meas_V()
+print (V)

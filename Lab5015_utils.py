@@ -29,11 +29,11 @@ class SMChiller( minimalmodbus.Instrument ):
 
 
     def read_meas_temp(self):
-        """Return the measured circulating fluid discharge temperature [°C]."""
+        """Return the measured circulating fluid discharge temperature [C]."""
         return self.read_register(0, 1)
 
     def read_set_temp(self):
-        """Return the circulating fluid set temperature [°C]."""
+        """Return the circulating fluid set temperature [C]."""
         return self.read_register(11, 1)
 
     def read_meas_press(self):
@@ -41,7 +41,7 @@ class SMChiller( minimalmodbus.Instrument ):
         return self.read_register(2, 2)
 
     def write_set_temp(self, value):
-        """Set the working temperature [°C]"""
+        """Set the working temperature [C]"""
         self.write_register(11, float(value), 1)
 
     def check_state(self):
@@ -281,7 +281,7 @@ class sipmTemp():
 
     """
 
-    def __init__(self, target=25): # target in °C
+    def __init__(self, target=25): # target in C
         self.target = float(target)
         self.TEC = Keithley2450()
 

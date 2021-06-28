@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/env python3
 
 from Lab5015_utils import PiLas
 from optparse import OptionParser

@@ -1,8 +1,9 @@
 import telepot
+from decouple import config
 import os, sys, time, random, datetime
 from Lab5015_utils import SMChiller
 
-WORKING_DIR = "/home/cmsdaq/Lab5015Utils"
+WORKING_DIR = "/home/cmsdaq/Programs/Lab5015Utils"
 os.chdir(WORKING_DIR)
 
 def handle(msg):
@@ -47,8 +48,8 @@ def handle(msg):
 
 
 
-
-bot = telepot.Bot('1739286114:AAGy-G1JlCFDGUcMYeC12tI6vQjgRDf6oDM')
+telegram_token = config('TELEGRAM_TOKEN')
+bot = telepot.Bot(telegram_token)
 bot.message_loop(handle)
 
 print ('I am listening...')

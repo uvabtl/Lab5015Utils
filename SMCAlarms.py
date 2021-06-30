@@ -9,15 +9,15 @@ import requests
 from logging import Handler, Formatter
 import logging
 import datetime
+from decouple import config
 
 from Lab5015_utils import SMChiller
 
-
-TELEGRAM_TOKEN = "1739286114:AAGy-G1JlCFDGUcMYeC12tI6vQjgRDf6oDM"
+TELEGRAM_TOKEN = config('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_LIST = ["-569856912"] # lab5015 alarm group
 TELEGRAM_CHAT_ID = "-569856912"
 
-WORKING_DIR = "/home/cmsdaq/Lab5015Utils"
+WORKING_DIR = "/home/cmsdaq/Programs/Lab5015Utils"
 ALARMS_DIR = WORKING_DIR+"/Alarms"
 
 

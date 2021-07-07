@@ -21,7 +21,7 @@ min_temp = options.target - 4.
 max_temp = options.target + 4. #interval needs to be symmetrical not to diverge when a temp spike occurs
 
 min_temp_safe = 10.
-max_temp_safe = 30.
+max_temp_safe = 40.
 
 if options.target < min_temp_safe or options.target > max_temp_safe:
     print("### ERROR: set temperature outside allowed range ["+str(min_temp_safe)+"-"+str(max_temp_safe)+"]. Exiting...")

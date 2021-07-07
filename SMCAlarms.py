@@ -45,7 +45,7 @@ class LogstashFormatter(Formatter):
 
 
 # global vars
-period = 10 # log every 10 seconds
+period = 5 # log every 10 seconds
 delay = 2 # time delay between check state and check press
 press_high_alert = 0.35 #MPa
 press_low_alert = 0.10 #MPa

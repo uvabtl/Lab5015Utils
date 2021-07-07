@@ -4,13 +4,57 @@ import pyvisa
 import subprocess
 import time
 import sys
+from SerialClient import serialClient
 from simple_pid import PID
 from datetime import datetime
 
+################################################### 
+class SMChiller():
+    """Instrument class for SMC chiller.
+    Args:
+        * portname (str): port name
+        * slaveaddress (int): slave address in the range 1 to 247
+    """
 
+    def __init__(self, portname='tcp://127.0.0.1:5050', slaveaddress=1):
+        if 'tcp://' in portname:
+            self.serial = serialClient(portname)
+        else:
+            print("ERROR: specify TCP address for communication")
+
+
+    def read_meas_temp(self):
+        """Return the measured circulating fluid discharge temperature [C]."""
+        self.serial.write("read 0 1")
+        return float(self.serial.readline().strip())
+
+    def read_set_temp(self):
+        """Return the circulating fluid set temperature [C]."""
+        self.serial.write("read 11 1")
+        return float(self.serial.readline().strip())
+
+    def read_meas_press(self):
+        """Return the measured circulating fluid discharge pressure [MPa]."""
+        self.serial.write("read 2 2")
+        return float(self.serial.readline().strip())
+    
+    def write_set_temp(self, value):
+        """Set the working temperature [C]"""
+        self.serial.write("write 11 1 "+str(value))
+        return self.serial.readline().strip()
+
+    def check_state(self):
+        """Return the chiller state (0: OFF, 1: RUNNING)"""
+        self.serial.write("read 12 0")
+        return int(self.serial.readline().strip())
+
+    def set_state(self, value):
+        """Set the chiller state (0: OFF, 1: RUNNING)"""
+        self.serial.write("write 12 0 "+str(value))
+        return self.serial.readline().strip()
 
 ###################################################
-class SMChiller( minimalmodbus.Instrument ):
+class SMChillerDirect( minimalmodbus.Instrument ):
     """Instrument class for SMC chiller.
 
     Args:

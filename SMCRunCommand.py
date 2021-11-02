@@ -4,7 +4,15 @@ import os, sys, time, random, datetime
 from Lab5015_utils import SMChiller
 
 WORKING_DIR = "/home/cmsdaq/Programs/Lab5015Utils"
+LOG_DIR = WORKING_DIR+"/Alarms"
+
 os.chdir(WORKING_DIR)
+if not os.path.exists(LOG_DIR):
+    os.mkdir(LOG_DIR)
+tlog_file = open(LOG_DIR+"/SMCRunCommand.log", "a")
+tlog_file.write('I am listening...\n')
+tlog_file.flush()
+
 
 def handle(msg):
     SMC = SMChiller()
@@ -12,8 +20,9 @@ def handle(msg):
     chat_id = msg['chat']['id']
     command = msg['text']
 
-    print ('Got command: %s' % command )
-    print (' from chat id = %s' % chat_id )
+    tlog_file.write('Got command: %s\n' % command )
+    tlog_file.write(' from chat id = %s\n' % chat_id )
+    tlog_file.flush()
 
 #    if (chat_id == 145950543):
     if (chat_id != 0):
@@ -52,7 +61,6 @@ telegram_token = config('TELEGRAM_TOKEN')
 bot = telepot.Bot(telegram_token)
 bot.message_loop(handle)
 
-print ('I am listening...')
 
 while (1):
     time.sleep(10)

@@ -4,13 +4,14 @@
 import os
 import time
 import datetime
+import pathlib
 
 import requests
 from logging import Handler, Formatter
 import logging
-import datetime
 from decouple import config
 
+from optparse import OptionParser
 from Lab5015_utils import SMChiller
 
 TELEGRAM_TOKEN = config('TELEGRAM_TOKEN')
@@ -45,12 +46,16 @@ class LogstashFormatter(Formatter):
 
 
 # global vars
-period = 5 # log every 10 seconds
+period = 0.5 # log every nsec
 delay = 2 # time delay between check state and check press
 press_high_alert = 0.35 #MPa
 press_low_alert = 0.10 #MPa
 
 def main():
+    parser = OptionParser()
+    parser.add_option("--log", dest="log", default="")
+    (options, args) = parser.parse_args()
+
     SMC = SMChiller()
 
     os.chdir(WORKING_DIR)
@@ -67,23 +72,31 @@ def main():
         logger.addHandler(handler)
 
 
+    chillerState = pathlib.Path("/home/cmsdaq/Programs/Lab5015Utils/chillerState.txt")
+
     while (1):
-        my_state = SMC.check_state()
-        time.sleep(delay)
+
         my_press = SMC.read_meas_press()
+        my_state = SMC.check_state()            
 
         # getting local day and time
         now = datetime.datetime.now()
         current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+        lastAction = datetime.datetime.fromtimestamp(chillerState.stat().st_mtime)
 
-        
-        if not os.path.exists(ALARMS_DIR):
-            os.mkdir(ALARMS_DIR)
+        if (now - lastAction).total_seconds() < delay:
+            time.sleep(delay)
+            continue
 
-        tlog_file = open(ALARMS_DIR+"/SMC_press_monitor.log", "a")
-        tlog_file.write("Time: "+current_time+" State: "+str(my_state)+" Press: "+str(my_press)+"\n")
-        # close log file
-        tlog_file.close()
+
+
+        if options.log != "":
+            if not os.path.exists(ALARMS_DIR):
+                os.mkdir(ALARMS_DIR)
+            tlog_file = open(ALARMS_DIR+"/"+options.log, "a")
+            tlog_file.write("Time: "+current_time+" State: "+str(my_state)+" Press: "+str(my_press)+"\n")
+            # close log file
+            tlog_file.close()
 
 
         #send alert if temperature above thresholds
@@ -92,9 +105,8 @@ def main():
                 logger.error('Houston we have a problem!\nPressure reading from SMC is: '+str(my_press)+' MPa. Turning OFF the chiller..')
                 SMC.set_state(0)
 
-
         # sleep for period
-        time.sleep(period-delay)
+        time.sleep(period)
 
 
 

@@ -51,6 +51,9 @@ class SMChiller():
     def set_state(self, value):
         """Set the chiller state (0: OFF, 1: RUNNING)"""
         self.serial.write("write 12 0 "+str(value))
+        stateFile = open("/home/cmsdaq/Programs/Lab5015Utils/chillerState.txt", "w")
+        stateFile.write(str(value))
+        stateFile.close()
         return self.serial.readline().strip()
 
 ###################################################
@@ -128,6 +131,10 @@ class PiLas():
     def set_state(self, value):
         """Set the laser state (0: OFF, 1: RUNNING)"""
         print(self.instr.query("ld="+str(value)))
+
+    def set_trigger(self, value):
+        """Set the laser trigger (0: int, 1: ext adj., 2: TTL)"""
+        print(self.instr.query("ts="+str(value)))
         
     def set_tune(self, value):
         """Set the laser tune [%]"""
@@ -238,6 +245,61 @@ class Keithley2231A():
     def check_state(self):
         """Check the PS state (0: OFF, 1: RUNNING)"""
         return(int(self.instr.query("OUTP?").strip()))
+
+
+##########################
+class AgilentE3633A():
+    """Instrument class for Agilent PS
+    Args:
+        * portname (str): port name
+    """
+    
+    def __init__(self):
+        self.instr = serial.Serial("/dev/UsbToSerial", 9600, dsrdtr=True, timeout=1)
+
+        self.instr.write(b'SYSTem:REMote\r\n')
+        self.instr.readline()
+        self.instr.write(b'*CLS\r\n')
+        self.instr.readline()
+
+
+    def set_V(self, value):
+        """set voltage"""
+        cmdString = "APPL "+str(value)+"\r\n"
+        self.instr.write(str.encode(cmdString))
+        self.instr.readline()
+        return
+
+    def meas_I(self):
+        """measure current"""
+        cmdString = "MEAS:CURR?\r\n"
+        self.instr.write(cmdString.encode())
+        curr = self.instr.readline()
+        return(float(curr))
+
+    def meas_V(self):
+        """measure tension"""
+        cmdString = "MEAS:VOLT?\r\n"
+        self.instr.write(cmdString.encode())
+        curr = self.instr.readline()
+        return(float(curr))
+
+
+    def set_state(self, value):
+        """Set the PS state (0: OFF, 1: RUNNING)"""
+        cmdString = "OUTP "+ str(value)+"\r\n"
+        self.instr.write(cmdString.encode())
+        out = self.instr.readline()
+        return
+        
+    def check_state(self):
+        """Check the PS state (0: OFF, 1: RUNNING)"""
+        cmdString = "OUTP?\r\n"
+        self.instr.write(cmdString.encode())
+        state = self.instr.readline()
+        return(int(state.decode()))
+        
+
 
 
 ##########################

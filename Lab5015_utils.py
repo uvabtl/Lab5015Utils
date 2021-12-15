@@ -472,15 +472,49 @@ class movingTable():
         self.instr.flushInput()  # Flush startup text in serial input
         self.globalX = 0.0
         self.globalY = 0.0
+        self.absMaxX = 151
+        self.absMaxY = 151
+
+    #go home when done
+    def __del__(self):
+        self.goHome()
+
+    def isSafe(self):
+        if abs(self.globalX) < self.absMaxX and abs(self.globalY) < self.absMaxY:
+            return 0
+        else:
+            self.goHome()
+            print("COORDINATEDS OUT OF RANGE")
+            sys.exit()
 
     def deltaX(self, delta):
         self.globalX += delta
+        self.isSafe()
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
         grbl_out = self.instr.readline()
 
     def deltaY(self, delta):
         self.globalY += delta
+        self.isSafe()
+        command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
+        self.instr.write(command.encode()) # Send g-code block to grbl
+        grbl_out = self.instr.readline()
+
+    def deltaXY(self, deltaX, deltaY):
+        self.globalX += deltaX
+        self.globalY += deltaY
+        self.isSafe()
+        command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
+        self.instr.write(command.encode()) # Send g-code block to grbl
+        grbl_out = self.instr.readline()
+
+    def getGlobalCoordinates(self):
+        return self.globalX, self.globalY
+
+    def goHome(self):
+        self.globalX = 0.0
+        self.globalY = 0.0
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
         grbl_out = self.instr.readline()

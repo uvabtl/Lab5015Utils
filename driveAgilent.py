@@ -13,6 +13,7 @@ parser.add_option("--setState")
 ps = AgilentE3633A()
 
 ps.set_V(float(options.setV))
+ps.set_range('HIGH')
 ps.set_state(int(options.setState))
 
 curr = ps.meas_I()

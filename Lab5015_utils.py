@@ -284,10 +284,16 @@ class AgilentE3633A():
         curr = self.instr.readline()
         return(float(curr))
 
-
     def set_state(self, value):
         """Set the PS state (0: OFF, 1: RUNNING)"""
         cmdString = "OUTP "+ str(value)+"\r\n"
+        self.instr.write(cmdString.encode())
+        out = self.instr.readline()
+        return
+
+    def set_range(self, value):
+        """Set the PS voltage range (LOW, HIGH)"""
+        cmdString = "VOLT:RANG "+ str(value)+"\r\n"
         self.instr.write(cmdString.encode())
         out = self.instr.readline()
         return

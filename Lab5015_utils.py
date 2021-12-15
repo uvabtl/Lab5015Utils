@@ -8,7 +8,7 @@ from SerialClient import serialClient
 from simple_pid import PID
 from datetime import datetime
 
-################################################### 
+###################################################
 class SMChiller():
     """Instrument class for SMC chiller.
     Args:
@@ -37,7 +37,7 @@ class SMChiller():
         """Return the measured circulating fluid discharge pressure [MPa]."""
         self.serial.write("read 2 2")
         return float(self.serial.readline().strip())
-    
+
     def write_set_temp(self, value):
         """Set the working temperature [C]"""
         self.serial.write("write 11 1 "+str(value))
@@ -135,7 +135,7 @@ class PiLas():
     def set_trigger(self, value):
         """Set the laser trigger (0: int, 1: ext adj., 2: TTL)"""
         print(self.instr.query("ts="+str(value)))
-        
+
     def set_tune(self, value):
         """Set the laser tune [%]"""
         print(self.instr.query("tune="+str(value)))
@@ -253,7 +253,7 @@ class AgilentE3633A():
     Args:
         * portname (str): port name
     """
-    
+
     def __init__(self):
         self.instr = serial.Serial("/dev/UsbToSerial", 9600, dsrdtr=True, timeout=1)
 
@@ -291,14 +291,14 @@ class AgilentE3633A():
         self.instr.write(cmdString.encode())
         out = self.instr.readline()
         return
-        
+
     def check_state(self):
         """Check the PS state (0: OFF, 1: RUNNING)"""
         cmdString = "OUTP?\r\n"
         self.instr.write(cmdString.encode())
         state = self.instr.readline()
         return(int(state.decode()))
-        
+
 
 
 
@@ -319,7 +319,7 @@ class sipmPower():
         self.max_voltage = 2.
 
         self.min_pow_safe = 0.
-        self.max_pow_safe = 2. # Watts   
+        self.max_pow_safe = 2. # Watts
 
         self.debug = True
 
@@ -398,7 +398,7 @@ class sipmTemp():
         self.max_temp_safe = 40.
 
         self.debug = True
-        
+
         if self.target < self.min_temp_safe or self.target > self.max_temp_safe:
             raise ValueError("### ERROR: set temp outside allowed range")
 
@@ -457,13 +457,43 @@ class sipmTemp():
 
 
 ##########################
+class movingTable():
+    """Instrument class for controlling the movingTable
+    Args:
+        * portname (str): port name
+    """
+
+    def __init__(self, portname='/dev/cu.usbserial-146110'):
+        self.instr = serial.Serial(portname, 115200)
+        # Wake up grbl
+        wakeUp = "\r\n\r\n"
+        self.instr.write(wakeUp.encode())
+        time.sleep(2)  # Wait for grbl to initialize
+        self.instr.flushInput()  # Flush startup text in serial input
+        self.globalX = 0.0
+        self.globalY = 0.0
+
+    def deltaX(self, delta):
+        self.globalX += delta
+        command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
+        self.instr.write(command.encode()) # Send g-code block to grbl
+        grbl_out = self.instr.readline()
+
+    def deltaY(self, delta):
+        self.globalY += delta
+        command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
+        self.instr.write(command.encode()) # Send g-code block to grbl
+        grbl_out = self.instr.readline()
+
+
+##########################
 def read_box_temp():
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     out = subprocess.run(['ssh', 'pi@100.100.100.5', './getTemperature.py ', current_time],
                          stdout=subprocess.PIPE)
     result = out.stdout.decode('utf-8').rstrip('\n').split()
-    
+
     if len(result) != 2:
         raise ValueError("Could not read box temperature")
     else:

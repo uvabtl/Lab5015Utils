@@ -297,7 +297,7 @@ class AgilentE3633A():
         self.instr.write(cmdString.encode())
         out = self.instr.readline()
         return
-        
+
     def check_state(self):
         """Check the PS state (0: OFF, 1: RUNNING)"""
         cmdString = "OUTP?\r\n"
@@ -476,10 +476,21 @@ class movingTable():
         self.instr.write(wakeUp.encode())
         time.sleep(2)  # Wait for grbl to initialize
         self.instr.flushInput()  # Flush startup text in serial input
+
+        #Homing cycle
+        command = "$H\n"
+        self.instr.write(command.encode()) # Send g-code block to grbl
+        grbl_out = self.instr.readline()
+
+        #set coordinateds to 0,0
+        command = "G10 P0 L20 X0 Y0 Z0\n"
+        self.instr.write(command.encode()) # Send g-code block to grbl
+        grbl_out = self.instr.readline()
+
         self.globalX = 0.0
         self.globalY = 0.0
-        self.absMaxX = 151
-        self.absMaxY = 151
+        self.absMaxX = 150
+        self.absMaxY = 150
 
     #go home when done
     def __del__(self):
@@ -495,14 +506,14 @@ class movingTable():
 
     def deltaX(self, delta):
         self.globalX += delta
-        self.isSafe()
+        #self.isSafe()   #already coded in fw
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
         grbl_out = self.instr.readline()
 
     def deltaY(self, delta):
         self.globalY += delta
-        self.isSafe()
+        #self.isSafe()   #already coded in fw
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
         grbl_out = self.instr.readline()
@@ -510,7 +521,7 @@ class movingTable():
     def deltaXY(self, deltaX, deltaY):
         self.globalX += deltaX
         self.globalY += deltaY
-        self.isSafe()
+        #self.isSafe()   #already coded in fw
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
         grbl_out = self.instr.readline()

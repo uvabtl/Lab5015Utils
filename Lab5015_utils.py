@@ -469,6 +469,46 @@ class movingTable():
         * portname (str): port name
     """
 
+    def __init__(self, portname='tcp://127.0.0.1:5060'):
+        if 'tcp://' in portname:
+            self.instr = serialClient(portname)
+        else:
+            print("ERROR: specify TCP address for communication")
+
+    def deltaXY(self, deltaX, deltaY):
+        """Move table by deltaX, deltaY."""
+        self.instr.write("delta "+str(deltaX)+" "+str(deltaY))
+        return self.instr.readline().strip()
+
+    def goToXY(self, deltaX, deltaY):
+        """Move table to coordinates X, Y."""
+        self.instr.write("go "+str(deltaX)+" "+str(deltaY))
+        return self.instr.readline().strip()
+
+    def getGlobalCoordinates(self):
+        """Read table global coordinates"""
+        self.instr.write("get")
+        globalX, globalY = self.instr.readline().strip().split()
+        return float(globalX), float(globalY)
+
+    def goHome(self):
+        """Move table to axis origin"""
+        reply = self.goToXY(0.0, 0.0)
+        return reply
+
+    def unlock(self):
+        """Unlock table"""
+        self.instr.write("unlock")
+        return self.instr.readline().strip()
+
+
+
+class movingTableDirect():
+    """Instrument class for controlling the movingTable
+    Args:
+        * portname (str): port name
+    """
+
     def __init__(self, portname='/dev/cu.usbserial-146110'):
         self.instr = serial.Serial(portname, 115200)
         # Wake up grbl
@@ -509,14 +549,16 @@ class movingTable():
         #self.isSafe()   #already coded in fw
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
-        grbl_out = self.instr.readline()
+        grbl_out = self.instr.readline().decode()
+        return grbl_out
 
     def deltaY(self, delta):
         self.globalY += delta
         #self.isSafe()   #already coded in fw
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
-        grbl_out = self.instr.readline()
+        grbl_out = self.instr.readline().decode()
+        return grbl_out
 
     def deltaXY(self, deltaX, deltaY):
         self.globalX += deltaX
@@ -524,7 +566,8 @@ class movingTable():
         #self.isSafe()   #already coded in fw
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
-        grbl_out = self.instr.readline()
+        grbl_out = self.instr.readline().decode()
+        return grbl_out
 
     def getGlobalCoordinates(self):
         return self.globalX, self.globalY
@@ -534,8 +577,8 @@ class movingTable():
         self.globalY = 0.0
         command = "G90 G0 X"+str(self.globalX)+" Y"+str(self.globalY)+"\n"
         self.instr.write(command.encode()) # Send g-code block to grbl
-        grbl_out = self.instr.readline()
-
+        grbl_out = self.instr.readline().decode()
+        return grbl_out
 
 ##########################
 def read_box_temp():

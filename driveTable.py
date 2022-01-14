@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from movingTable import movingTable
+from Lab5015_utils import movingTable
 from optparse import OptionParser
 import time
 

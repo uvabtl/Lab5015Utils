@@ -59,6 +59,12 @@ class SerialServer:
                 reply = str(self.globalX)+" "+str(self.globalY)
                 self.socket.send(reply.encode())
 
+            if "unlock" in msg:
+                command = "$x\n"
+                self.instr.write(command.encode()) # Send g-code block to grbl
+                time.sleep(0.2)
+                reply = self.instr.readline()
+                self.socket.send(reply) #no need to decode and encode
 
 
 

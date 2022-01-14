@@ -37,6 +37,11 @@ class movingTable():
         reply = self.goToXY(0.0, 0.0)
         return reply
 
+    def unlock(self):
+        """Unlock table"""
+        self.instr.write("unlock")
+        return self.instr.readline().strip()
+
 
 
 class movingTableDirect():

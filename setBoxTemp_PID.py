@@ -11,14 +11,14 @@ from simple_pid import PID
 parser = OptionParser()
 
 parser.add_option("--target", type=float, dest="target", default=22.0)
-parser.add_option("--initialDelay", type=float, dest="initialDelay", default=600)
+parser.add_option("--initialDelay", type=float, dest="initialDelay", default=60)
 parser.add_option("--initialTemp", type=float, dest="initialTemp", default=19.5)
 (options, args) = parser.parse_args()
 
 debug = True
 
-min_temp = options.target - 4.
-max_temp = options.target + 4. #interval needs to be symmetrical not to diverge when a temp spike occurs
+min_temp = options.target - 6.
+max_temp = options.target + 6. #interval needs to be symmetrical not to diverge when a temp spike occurs
 
 min_temp_safe = 10.
 max_temp_safe = 40.
@@ -59,7 +59,7 @@ while True:
 
 water_temp = SMC.read_meas_temp()
 new_temp = options.initialTemp
-print("--- setting chiller water temperature at "+str(new_temp)+"° C   [box temperature: "+str(box_temp)+"° C   water temperature: "+str(water_temp)+"° C]")
+print("--- setting chiller water temperature at "+str(new_temp)+" C   [box temperature: "+str(box_temp)+" C   water temperature: "+str(water_temp)+" C]")
 SMC.write_set_temp(new_temp)
 sleep_time = options.initialDelay
 print("--- sleeping for "+str(sleep_time)+" s\n")
@@ -95,7 +95,7 @@ while True:
         water_temp = SMC.read_meas_temp()
         print("--- setting chiller water temperature at "+str(round(new_temp, 1))+"° C   [box temperature: "+str(box_temp)+"° C   water temperature: "+str(water_temp)+"° C]")
         SMC.write_set_temp(round(new_temp, 1))
-        sleep_time = 120
+        sleep_time = 45
         print("--- sleeping for "+str(sleep_time)+" s   [kill at any time with ctrl-C]\n")
         sys.stdout.flush()
         time.sleep(sleep_time)
@@ -104,7 +104,7 @@ while True:
         break
 
 print("--- powering off the chiller")
-#SMC.set_state(0)
+SMC.set_state(0)
 time.sleep(5)
 state = SMC.check_state()
 print(">>> SMChiller::state: "+str(state))

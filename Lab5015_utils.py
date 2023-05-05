@@ -111,7 +111,7 @@ class PiLas():
     """
 
     def __init__(self, portname='ASRL/dev/pilas::INSTR'):
-        self.instr = pyvisa.ResourceManager().open_resource(portname)
+        self.instr = pyvisa.ResourceManager('@py').open_resource(portname)
         self.instr.baud_rate = 19200
         self.instr.read_termination = '\n'
         self.instr.write_termination = '\n'
@@ -146,6 +146,55 @@ class PiLas():
 
 
 ##########################
+class KeithleyDMM6500():
+    """Instrument class for Keithley DMM 6500
+
+    Args:
+        * portname (str): port name
+
+    """
+
+    def __init__(self, portname='TCPIP0::100.100.100.9::INSTR'):
+        self.instr = pyvisa.ResourceManager('@py').open_resource(portname)
+        print("----")
+        ID = self.query("*IDN?")
+        print("----")
+        self.instr.write("*RST") #reset the instrument
+        self.mybuffer = "\"defbuffer1\""
+        self.instr.write(":TRAC:CLE "+self.mybuffer) #clear buffers and prepare for measure
+
+    def query(self, query):
+        """Pass a query to the multimeter"""
+        print(self.instr.query(query).strip())
+    
+    def set_read_V(self):
+        query_out = self.instr.write(":SENS:FUNC \"VOLT:DC\"")
+        query_out = self.instr.write(":SENS:VOLT:RANG 0.1")
+        query_out = self.instr.write(":SENS:VOLT:INP AUTO")
+        query_out = self.instr.write(":SENS:VOLT:NPLC 1")
+        query_out = self.instr.write(":SENS:VOLT:AZER ON")
+        query_out = self.instr.write(":SENS:VOLT:AVER:TCON REP")
+        query_out = self.instr.write(":SENS:VOLT:AVER:COUN 10")
+        query_out = self.instr.write(":SENS:VOLT:AVER ON")
+    
+    def read(self):
+        """Return time and measurement"""
+        reading = self.instr.query(":READ? ").strip()
+        return(float(reading))
+    
+    def closeChannel(self, ch):
+        """Return time and measurement"""
+        self.instr.write(":ROUTe:OPEN:ALL") #open all channels
+        self.instr.write("FUNC 'VOLT:DC'") #measure DC volt
+        self.mybuffer = '%d'%int(ch)
+        self.instr.write("ROUTe:CLOSE (@%s)"%self.mybuffer) #close required channel
+        
+    def check_state(self):
+        """Check the PS state (0: OFF, 1: RUNNING)"""
+        return(int(self.instr.query("OUTP?").strip()))
+
+
+##########################
 class Keithley2450():
     """Instrument class for Keithley 2450
 
@@ -155,7 +204,7 @@ class Keithley2450():
     """
 
     def __init__(self, portname='TCPIP0::100.100.100.7::INSTR'):
-        self.instr = pyvisa.ResourceManager().open_resource(portname)
+        self.instr = pyvisa.ResourceManager('@py').open_resource(portname)
         self.mybuffer = "\"defbuffer1\""
         self.instr.write(":TRAC:CLE "+self.mybuffer) #clear buffers and prepare for measure
 
@@ -215,7 +264,7 @@ class Keithley2231A():
     """
 
     def __init__(self, portname='ASRL/dev/keithley2231A::INSTR', chName="CH1"):
-        self.instr = pyvisa.ResourceManager().open_resource(portname)
+        self.instr = pyvisa.ResourceManager('@py').open_resource(portname)
         self.chName = chName
         self.instr.write("SYSTem:REMote")
         self.instr.write("INST:SEL "+self.chName)
@@ -256,13 +305,13 @@ class AgilentE3633A():
 
     def __init__(self):
         self.instr = serial.Serial("/dev/UsbToSerial", 9600, dsrdtr=True, timeout=1)
-
+        
         self.instr.write(b'SYSTem:REMote\r\n')
         self.instr.readline()
         self.instr.write(b'*CLS\r\n')
         self.instr.readline()
-
-
+        
+        
     def set_V(self, value):
         """set voltage"""
         cmdString = "APPL "+str(value)+"\r\n"

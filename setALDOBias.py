@@ -6,7 +6,7 @@ from Lab5015_utils import Keithley2231A
 
 parser = OptionParser()
 parser.add_option("--power", dest="power", default="0")
-parser.add_option("--target", dest="target", default="47")
+parser.add_option("--target", dest="target", default="46")
 parser.add_option("--combine-ps", dest="combinePS", default="0", help="combine two different power supplies")
 (options, args) = parser.parse_args()
 

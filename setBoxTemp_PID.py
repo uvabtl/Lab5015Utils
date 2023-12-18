@@ -11,6 +11,7 @@ from simple_pid import PID
 parser = OptionParser()
 
 parser.add_option("--target", type=float, dest="target", default=22.0)
+parser.add_option("--box",    type=str, dest="box", default='big')
 parser.add_option("--initialDelay", type=float, dest="initialDelay", default=60)
 parser.add_option("--initialTemp", type=float, dest="initialTemp", default=19.5)
 (options, args) = parser.parse_args()
@@ -49,7 +50,7 @@ if state is 0:
 box_temp = 22.
 while True:
     try:
-        box_temp = float(read_box_temp())
+        box_temp = float(read_box_temp(options.box))
         break
     except ValueError as e:
         print(e)
@@ -76,7 +77,7 @@ while True:
         print(datetime.now())
 
         try:
-            box_temp = float(read_box_temp())
+            box_temp = float(read_box_temp(options.box))
         except ValueError as e:
             print(e)
             time.sleep(5)

@@ -6,23 +6,49 @@ import time
 
 parser = OptionParser()
 
-parser.add_option("--temp", dest="temp", default="19.5")
-parser.add_option("--power", dest="power", default="0")
+parser.add_option("--check-state", dest="check_state", action="store_true")
+parser.add_option("--water-temp", dest="water_temp", action="store_true")
+parser.add_option("--set-temp", dest="set_temp", action="store_true")
+parser.add_option("--power-on", dest="power_on", action="store_true")
+parser.add_option("--power-off", dest="power_off", action="store_true")
+parser.add_option("--target", dest="target", default="23.0")
 (options, args) = parser.parse_args()
 
 
+if options.power_on and options.power_off:
+    print("Error: cannot power on and off simultaneously. Choose only one option. Exiting...")
+    exit()
 
 SMC = SMChiller()
+state = int(SMC.check_state()) 
+    
+if options.check_state:
+    print(state)
 
-print("set temp to ", options.temp)
-SMC.write_set_temp(options.temp)
-print("set power to ", options.power)
-SMC.set_state(options.power)
+if options.water_temp:
+    water_temp = SMC.read_meas_temp()
+    print(water_temp)
 
-time.sleep(3)
-
-if float(SMC.read_set_temp()) != float(options.temp):
-    print("wrong temp")
-
-if int(SMC.check_state()) != int(options.power):
-    print("power")
+if options.power_on:
+    if state == 1:
+        print("Chiller is already on. Doing nothing...")
+    else:
+        print("Power on chiller")
+        SMC.set_state(1)
+        time.sleep(1)
+        
+if options.power_off:
+    if state == 0:
+        print("Chiller is already off. Doing nothing...")
+    else:
+        print("Power off chiller")
+        SMC.set_state(0)
+        time.sleep(1)
+    
+if options.set_temp:
+    if state == 0:
+        print("Power on chiller")
+        SMC.set_state(1)
+    print("set temp to ", options.target)
+    SMC.write_set_temp(options.target)
+    time.sleep(3)

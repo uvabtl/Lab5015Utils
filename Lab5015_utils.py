@@ -239,7 +239,15 @@ class Keithley2450():
     def set_V(self, value):
         """Set operating voltage"""
         return(self.instr.write("SOUR:VOLT "+str(value)))
-
+    
+    def set_I(self, value):
+        """Set current limit"""
+        return(self.instr.write("SOUR:VOLT:ILIMIT "+str(value)))
+    
+    def set_I_range(self, value):
+        """Set current reading range"""
+        return(self.instr.write("SENS:CURR:RANG "+str(value)))
+    
     def set_state(self, value):
         """Set the PS state (0: OFF, 1: RUNNING)"""
         return(self.instr.write("OUTP "+str(value)))
@@ -294,6 +302,14 @@ class Keithley2231A():
     def check_state(self):
         """Check the PS state (0: OFF, 1: RUNNING)"""
         return(int(self.instr.query("OUTP?").strip()))
+    
+    def getChannel(self):
+        return(self.chName)
+    
+    def selectChannel(self,chName):
+        self.chName = chName
+        self.instr.write("INST:SEL "+self.chName)
+        
 
 
 ##########################
@@ -630,17 +646,30 @@ class movingTableDirect():
         return grbl_out
 
 ##########################
-def read_box_temp():
+def read_box_temp(boxId):
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-    out = subprocess.run(['ssh', 'pi@100.100.100.5', './getTemperature.py ', current_time],
-                         stdout=subprocess.PIPE)
-    result = out.stdout.decode('utf-8').rstrip('\n').split()
-
-    if len(result) != 2:
-        raise ValueError("Could not read box temperature")
-    else:
-        return result[1]
+    
+    if boxId == 'small':
+        out = subprocess.run(['ssh', 'pi@100.100.100.5', './getTemperature.py ', current_time],
+                             stdout=subprocess.PIPE)
+        result = out.stdout.decode('utf-8').rstrip('\n').split()
+        
+        if len(result) != 2:
+            raise ValueError("Could not read box temperature")
+        else:
+            return result[1]
+    
+    elif boxId == 'big':
+        out = subprocess.run(['ssh', 'cern_user@10.0.0.1', 'tail -n 1 /home/cern_user/DHT22Logger/DHTLoggerData.log'],
+                             stdout=subprocess.PIPE)
+        result = out.stdout.decode('utf-8').rstrip('\n').split()
+        file_time = datetime.strptime(result[0]+" "+result[1],"%Y-%m-%d %H:%M:%S")
+        if (file_time-now).total_seconds() > 60.:
+            raise ValueError("Could not read box temperature")
+        else:
+            ave = 1./5. * ( float(result[2]) + float(result[4]) + float(result[6]) + float(result[8]) + float(result[10]) )
+            return ave
 
 
 ##########################

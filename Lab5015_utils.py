@@ -271,7 +271,7 @@ class Keithley2231A():
 
     """
 
-    def __init__(self, portname='ASRL/dev/keithley2231A::INSTR', chName="CH1"):
+    def __init__(self, portname='ASRL/dev/ttyUSB0::INSTR', chName="CH1"):
         self.instr = pyvisa.ResourceManager('@py').open_resource(portname)
         self.chName = chName
         self.instr.write("SYSTem:REMote")

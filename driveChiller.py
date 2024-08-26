@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from Lab5015_utils import SMChiller
+from Lab5015_utils import SMChiller, LAUDAChiller
 from optparse import OptionParser
 import time
 
@@ -19,7 +19,7 @@ if options.power_on and options.power_off:
     print("Error: cannot power on and off simultaneously. Choose only one option. Exiting...")
     exit()
 
-SMC = SMChiller()
+SMC = LAUDAChiller()
 state = int(SMC.check_state()) 
     
 if options.check_state:

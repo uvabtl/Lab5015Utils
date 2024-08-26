@@ -9,6 +9,81 @@ from simple_pid import PID
 from datetime import datetime
 
 ###################################################
+class LAUDAChiller():
+    """Instrument class for Lauda chiller
+    Args:
+        * portname (str): port name
+    """
+
+    def __init__(self, portname='tcp://127.0.0.1:5050'):
+        if 'tcp://' in portname:
+            self.serial = serialClient(portname)
+        else:
+            print("ERROR: specify TCP address for communication")
+    
+    def waitAnswer(self,response):
+        reply = ''
+        time.sleep(0.5)
+        x = self.serial.readline()
+        reply += x.strip()
+        if reply == response:
+            return reply
+    
+    def returnAnswer(self):
+        reply = ''
+        time.sleep(0.5)
+        x = self.serial.readline()
+        reply += x.strip()
+        return reply
+    
+    def set_state(self, value):
+        """Set the chiller state (0: OFF, 1: RUNNING)"""
+        if value == '1':
+            print('Lauda::START')
+            self.serial.write('START')
+            if (self.waitAnswer('OK') == 'OK'):
+                self.serial.write('OUT_SP_01_6')
+                stateFile = open("/home/cmsdaq/Programs/Lab5015Utils/chillerState.txt", "w")
+                stateFile.write(str(value))
+                stateFile.close()
+                return self.waitAnswer('OK')
+        if value == '0':
+            print('Lauda::STOP')
+            self.serial.write('STOP')
+            stateFile = open("/home/cmsdaq/Programs/Lab5015Utils/chillerState.txt", "w")
+            stateFile.write(str(value))
+            stateFile.close()
+            return self.waitAnswer('OK')
+
+
+    
+    def check_state(self):
+        """Check the chiller state (0: OFF, 1: RUNNING)"""
+        self.serial.write('IN_MODE_02')
+        state = self.returnAnswer()
+        if state == '0':
+            return '1'
+        else:
+            return '0'
+
+    def write_set_temp(self,value):
+        """Set the working temperature [C]"""
+        print('Lauda::SET_TEMP to %06.2f'%float(value))
+        self.serial.write(('OUT_SP_00_%06.2f'%float(value)))
+        return(self.waitAnswer('OK'))
+
+    def read_set_temp(self):
+        """Check the chiller set temperature"""
+        self.serial.write('IN_SP_00')
+        return (self.returnAnswer())
+    
+    def read_meas_temp(self):
+        """Check the chiller measured temperature"""
+        self.serial.write('IN_PV_00')
+        return (self.returnAnswer())
+
+
+###################################################
 class SMChiller():
     """Instrument class for SMC chiller.
     Args:
@@ -107,7 +182,7 @@ class PiLas():
 
     Args:
         * portname (str): port name
-
+OB
     """
 
     def __init__(self, portname='ASRL/dev/pilas::INSTR'):

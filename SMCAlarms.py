@@ -95,6 +95,16 @@ def main():
                 os.mkdir(ALARMS_DIR)
             tlog_file = open(ALARMS_DIR+"/"+options.log, "a")
             tlog_file.write("Time: "+current_time+" State: "+str(my_state)+" Press: "+str(my_press)+"\n")
+            tlog_file.close()
+
+            tlog_file = open(ALARMS_DIR+"/"+options.log, "r")
+            lines = tlog_file.readlines()
+            tlog_file.close()
+
+            tlog_file = open(ALARMS_DIR+"/"+options.log, "w")
+            lines = lines[-200000:] #buffer last 200000 seconds in the log file
+            for line in lines:
+                tlog_file.write(line)
             # close log file
             tlog_file.close()
 

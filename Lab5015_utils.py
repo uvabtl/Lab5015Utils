@@ -291,6 +291,11 @@ class Keithley2231A():
         curr = self.instr.query("MEAS:CURR?").strip()
         return(float(curr))
 
+    def meas_P(self):
+        """measure power"""
+        power = self.instr.query("MEAS:POW?").strip()
+        return(float(power))
+    
     def set_V(self, value):
         """set voltage"""
         return(self.instr.write("APPL "+self.chName+","+str(value)))
@@ -309,6 +314,7 @@ class Keithley2231A():
     def selectChannel(self,chName):
         self.chName = chName
         self.instr.write("INST:SEL "+self.chName)
+
         
 
 
